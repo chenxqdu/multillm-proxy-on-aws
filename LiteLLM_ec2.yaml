@@ -164,7 +164,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64}}"
-      InstanceType: t4g.small
+      InstanceType: m6g.medium
       IamInstanceProfile: !Ref IamInstanceProfile
       BlockDeviceMappings:
         - DeviceName: /dev/xvda

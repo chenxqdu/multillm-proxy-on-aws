@@ -1,9 +1,9 @@
 
-## LiteLLM Proxy deployment on AWS
+## MultiLLM Proxy on AWS
 
-One-Click deployment of LiteLLM with CloudFormation
+One-Click deployment with CloudFormation
 
-LiteLLM Project [Docs](https://litellm.vercel.app/docs/)
+Based on LiteLLM Project [Docs](https://litellm.vercel.app/docs/)
 
 ### Outputs for API call
 
@@ -28,7 +28,7 @@ aws ecs update-service --cluster <cluster-name> --service <service-name> --force
 
 ```
 
-For deployment on ec2, log in from aws console ec2 connection with Session Manager
+For deployment on ec2, login from aws console ec2 connection with session manager then
 
 ```
 cd /home/ec2-user
