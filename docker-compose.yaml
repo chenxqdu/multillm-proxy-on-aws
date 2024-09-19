@@ -1,0 +1,60 @@
+version: "3.11"
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    ports:
+      - "80:4000" # Map the container port to the host, change the host port if necessary
+    command:
+      - '--config=/app/config.yaml'
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redispassword
+      DATABASE_URL: postgresql://dbuser:dbpassword@db:5432/litellmdb
+    volumes:
+      - /home/ec2-user/proxy_config.yaml:/app/config.yaml
+  
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass redispassword
+    volumes:
+      - /home/ec2-user/redis-data:/data
+
+
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: litellmdb
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: dbpassword
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d litellm -U dbuser"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - prometheus_data:/prometheus
+      - /home/ec2-user/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+    restart: always
+
+volumes:
+  prometheus_data:
+    driver: local

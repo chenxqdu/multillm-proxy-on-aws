@@ -1,0 +1,30 @@
+model_list:
+  - model_name: bedrock-claude-v3-sonnet
+    litellm_params:
+      model: bedrock/anthropic.claude-3-sonnet-20240229-v1:0
+      aws_region_name: "us-west-2"
+      aws_access_key_id: "<replace_with_your_access_key>"
+      aws_secret_access_key: "<replace_with_your_secret_key>"
+      rpm: 3
+  - model_name: bedrock-claude-v3-sonnet
+    litellm_params:
+      model: bedrock/anthropic.claude-3-sonnet-20240229-v1:0
+      aws_region_name: "us-east-1"
+      aws_access_key_id: "<replace_with_your_access_key>"
+      aws_secret_access_key: "<replace_with_your_secret_key>"
+      rpm: 3
+  - model_name: bedrock-claude-v3-haiku
+    litellm_params:
+      model: bedrock/anthropic.claude-3-haiku-20240307-v1:0
+      aws_region_name: "us-west-2"
+      aws_access_key_id: "<replace_with_your_access_key>"
+      aws_secret_access_key: "<replace_with_your_secret_key>"
+      rpm: 5
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 3
+  timeout: 30
+general_settings: 
+  master_key: sk-1234
+# litellm_settings:
+  # fallbacks: [{"bedrock-claude-v3-sonnet": ["bedrock-claude-v3-haiku"]}]

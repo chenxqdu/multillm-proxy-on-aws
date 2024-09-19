@@ -1,0 +1,249 @@
+
+# aws cloudformation create-stack --stack-name litellm --template-body file://LiteLLM.yaml --capabilities CAPABILITY_NAMED_IAM
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy an LiteLLM proxy service on AWS
+
+Parameters:
+  VPCCidrBlock:
+    Type: String
+    Default: 10.0.0.0/16
+  PublicSubnet1CidrBlock:
+    Type: String
+    Default: 10.0.0.0/24
+  PublicSubnet2CidrBlock:
+    Type: String
+    Default: 10.0.1.0/24
+  PrivateSubnet1CidrBlock:
+    Type: String
+    Default: 10.0.2.0/24
+  PrivateSubnet2CidrBlock:
+    Type: String
+    Default: 10.0.3.0/24
+  ContainerImage:
+    Type: String
+    Description: LiteLLM Proxy Image # to mount proxy configuration file
+    Default: ghcr.io/berriai/litellm-database:main-stable
+  LitellmFileS3Bucket:
+    Type : String
+    Description: Select an S3 bucket from your account
+    Default: test-chenxqdu-s3-oregon
+  ProxyFileS3Key:
+    Type: String
+    Description: Init container proxy configuration file located path
+    Default: litellm/proxy_config.yaml
+  DockerComposeFileS3Key:
+    Type: String
+    Description: Init container proxy configuration file located path
+    Default: litellm/docker-compose.yaml
+  PromethusFileS3Key:
+    Type: String
+    Description: Init container proxy configuration file located path
+    Default: litellm/prometheus.yaml
+
+Resources:
+
+  # 创建 VPC
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCidrBlock
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+
+  # 创建互联网网关
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  # 附加互联网网关到 VPC
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  # 创建公有子网 1
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref PublicSubnet1CidrBlock
+      MapPublicIpOnLaunch: true
+
+  # 创建公有子网 2
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref PublicSubnet2CidrBlock
+      MapPublicIpOnLaunch: true
+
+  # 创建私有子网 1
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref PrivateSubnet1CidrBlock
+      MapPublicIpOnLaunch: false
+
+  # 创建私有子网 2
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref PrivateSubnet2CidrBlock
+      MapPublicIpOnLaunch: false
+
+  # 创建公有路由表
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  # 创建默认路由到互联网网关
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  # 将公有子网 1 关联到公有路由表
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  # 将公有子网 2 关联到公有路由表
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  # 创建私有路由表
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  # 将私有子网 1 关联到私有路由表
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet1
+
+  # 将私有子网 2 关联到私有路由表
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet2
+
+  # 创建安全组
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP traffic
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPC
+
+  # 创建 EC2 
+  LiteLLMServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64}}"
+      InstanceType: t4g.small
+      IamInstanceProfile: !Ref IamInstanceProfile
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 50
+            VolumeType: gp3
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      SubnetId: !Ref PublicSubnet1
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y && yum install -y docker && systemctl start docker && systemctl enable docker && curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
+          aws s3 cp s3://${LitellmFileS3Bucket}/${ProxyFileS3Key} /home/ec2-user/proxy_config.yaml
+          aws s3 cp s3://${LitellmFileS3Bucket}/${DockerComposeFileS3Key} /home/ec2-user/docker-compose.yaml
+          aws s3 cp s3://${LitellmFileS3Bucket}/${PromethusFileS3Key} /home/ec2-user/prometheus.yaml
+          docker-compose -f /home/ec2-user/docker-compose.yaml up -d
+      Tags:
+        - Key: Name
+          Value: LiteLLM-Server
+  
+
+  ###################
+  ## CW Resources ###
+  ###################
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['-', [!Sub '${AWS::StackName}', 'loggroup']]
+      RetentionInDays: 7
+
+  ###################
+  ## IAM Resources ##
+  ###################
+  IamInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref IamInstanceProfileRole
+
+
+  IamInstanceProfileRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:        
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  S3Policies:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: 's3access'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Action:
+              - 's3:GetObject'
+              - 's3:ListBucket'
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:s3:::${LitellmFileS3Bucket}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${LitellmFileS3Bucket}/*'
+      Roles:
+        - Ref: 'IamInstanceProfileRole'
+
+
+Outputs:
+  LiteLLMServer:
+    Description: The DNS name of the LiteLLMServer
+    Value: !GetAtt LiteLLMServer.PublicIp
+
