@@ -26,20 +26,19 @@ Parameters:
     Default: ghcr.io/berriai/litellm-database:main-stable
   LitellmFileS3Bucket:
     Type : String
-    Description: Select an S3 bucket from your account
-    Default: test-chenxqdu-s3-oregon
+    Description: Select the S3 bucket from your account where you have uploaded litellm configuration files
   ProxyFileS3Key:
     Type: String
-    Description: Init container proxy configuration file located path
+    Description: Init container proxy configuration file located path in the selected s3 bucket
     Default: litellm/proxy_config.yaml
   DockerComposeFileS3Key:
     Type: String
-    Description: Init container proxy configuration file located path
-    Default: litellm/docker-compose.yaml
+    Description: Init container proxy configuration file located path in the selected s3 bucket
+    Default: litellm/docker-compose.yml
   PromethusFileS3Key:
     Type: String
-    Description: Init container proxy configuration file located path
-    Default: litellm/prometheus.yaml
+    Description: Init container proxy configuration file located path in the selected s3 bucket
+    Default: litellm/prometheus.yml
 
 Resources:
 
@@ -179,8 +178,8 @@ Resources:
           #!/bin/bash
           yum update -y && yum install -y docker && systemctl start docker && systemctl enable docker && curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
           aws s3 cp s3://${LitellmFileS3Bucket}/${ProxyFileS3Key} /home/ec2-user/proxy_config.yaml
-          aws s3 cp s3://${LitellmFileS3Bucket}/${DockerComposeFileS3Key} /home/ec2-user/docker-compose.yaml
-          aws s3 cp s3://${LitellmFileS3Bucket}/${PromethusFileS3Key} /home/ec2-user/prometheus.yaml
+          aws s3 cp s3://${LitellmFileS3Bucket}/${DockerComposeFileS3Key} /home/ec2-user/docker-compose.yml
+          aws s3 cp s3://${LitellmFileS3Bucket}/${PromethusFileS3Key} /home/ec2-user/prometheus.yml
           docker-compose -f /home/ec2-user/docker-compose.yaml up -d
       Tags:
         - Key: Name

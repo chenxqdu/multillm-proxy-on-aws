@@ -25,13 +25,11 @@ Parameters:
     Default: public.ecr.aws/i4x4j7g8/956045422469-oregon:litellm-ecs-configmap
   ProxyFileS3Bucket:
     Type: String
-    Description: Init container proxy configuration file located bucket
-    Default: test-chenxqdu-s3-oregon
-  ProxyFilePath:
+    Description: Select the S3 bucket from your account where you have uploaded litellm configuration files
+  ProxyFileS3Key:
     Type: String
-    Description: Init container proxy configuration file located path
+    Description: Init container proxy configuration file located path in the selected s3 bucket
     Default: litellm/proxy_config.yaml
-
 
 Resources:
 

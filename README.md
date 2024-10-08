@@ -5,6 +5,19 @@ One-Click deployment with CloudFormation
 
 Based on LiteLLM Project [Docs](https://litellm.vercel.app/docs/)
 
+## Deployment on AWS
+
+Prerequisite:
+
+An exsiting s3 bucket with uploaded configuration files :
+
+1. for ecs deployement: proxy_config.yaml
+2. for ec2 deployement: proxy_config.yaml, docker-comspose.yml, prometheus.yml (optional)
+
+Notice:
+
+PostgreSQL is used for Virual key and Spend track, Redis is used for routing, you can remove these components from LiteLLM_ecs.yaml or docker-compose.yml according to your scenario.
+
 ### Outputs for API call
 
 For deployment on ecs, use ``` http://${lb_dns}:80/v1/chat/completions ```
