@@ -55,9 +55,47 @@ docker-compose up -d
 
 Refer to test_virtkey.json for examples detail.
 
+
+### Support LLMs hosted on Bedrock and SageMaker 
+
+```
+  - model_name: bedrock-claude-v3-haiku
+    litellm_params:
+      model: bedrock/anthropic.claude-3-haiku-20240307-v1:0
+      aws_region_name: "us-west-2"
+      aws_access_key_id: <>
+      aws_secret_access_key: <>
+  - model_name: sagemaker-Yi-1.5-9b
+    litellm_params:
+      model: sagemaker/jumpstart-dft-hf-llm-yi-1-5-9b-chat-20241009-070517 # replace with your endpoint
+      aws_region_name: "us-west-2"
+      aws_access_key_id: <>
+      aws_secret_access_key: <>
+```
+
 ### Simple API call 
 
 compatible with OpenAI chat completion
+
+
+#### Simple call LLM hosted on Sagemaker
+Prerequiste: sagemaker endpoint of LLM is in service, refer to [FM SageMaker Jumpstart](https://docs.aws.amazon.com/sagemaker/latest/dg/jumpstart-foundation-models.html)
+
+```
+curl -i http://$litellm_ip:80/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <master_key>" \
+  -d '{
+     "model": "sagemaker-Yi-1.5-9b",
+     "messages": [
+          {
+               "role": "user",
+                "content": "Hello"
+          }
+     ]
+}'
+```
+
 
 #### Simple call with streaming
 
