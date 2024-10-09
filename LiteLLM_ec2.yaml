@@ -156,6 +156,10 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9090
+          ToPort: 9090
+          CidrIp: 0.0.0.0/0
       VpcId: !Ref VPC
 
   # 创建 EC2 
@@ -180,7 +184,7 @@ Resources:
           aws s3 cp s3://${LitellmFileS3Bucket}/${ProxyFileS3Key} /home/ec2-user/proxy_config.yaml
           aws s3 cp s3://${LitellmFileS3Bucket}/${DockerComposeFileS3Key} /home/ec2-user/docker-compose.yml
           aws s3 cp s3://${LitellmFileS3Bucket}/${PromethusFileS3Key} /home/ec2-user/prometheus.yml
-          docker-compose -f /home/ec2-user/docker-compose.yaml up -d
+          docker-compose -f /home/ec2-user/docker-compose.yml up -d
       Tags:
         - Key: Name
           Value: LiteLLM-Server
@@ -243,6 +247,6 @@ Resources:
 
 Outputs:
   LiteLLMServer:
-    Description: The DNS name of the LiteLLMServer
+    Description: The Public IP of the LiteLLMServer
     Value: !GetAtt LiteLLMServer.PublicIp
 

@@ -1,7 +1,9 @@
-// test request with master key 
+// This file is only to show exmaples of API calls, with sk-1234 as master key
+
+// test request with master key
 curl -i http://$litellm_ip:80/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sk-eOvE773hIA6KsKEWoD9Yiw" \
+  -H "Authorization: Bearer sk-1234" \
   -d '{
      "model": "bedrock-claude-v3-haiku",
      "messages": [
@@ -9,11 +11,12 @@ curl -i http://$litellm_ip:80/v1/chat/completions \
                "role": "user",
                "content": "Hello"
           }
-     ]
+     ],
+     "stream": True
 }'
 
 
-// generate key 
+// generate virtual key 
 curl http://$litellm_ip:80/key/generate \
 --header 'Authorization: Bearer sk-1234' \
 --header 'Content-Type: application/json' \
@@ -39,7 +42,7 @@ curl http://$litellm_ip:80/key/generate \
      "team_id": null,
      "max_parallel_requests": null,
      "metadata": {
-          "user": "<user_mail>@amazon.com"
+          "user": "<user_mail>"
      },
      "tpm_limit": null,
      "rpm_limit": null,
@@ -102,7 +105,7 @@ curl http://$litellm_ip:80/key/info?key=sk-pyHgYR8Iacc4CLHwjeKu4Q \
      }
 }
 
-// test request with key 
+// test request with virtual key 
 curl -i http://$litellm_ip:80/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-pyHgYR8Iacc4CLHwjeKu4Q" \
@@ -130,7 +133,7 @@ curl -i http://$litellm_ip:80/v1/chat/completions \
 }'
 
 
-  {
+{
      "id": "chatcmpl-d3f7cfba-25be-4247-b9f2-1a74f91344ef",
      "choices": [
           {
@@ -161,7 +164,7 @@ curl http://$litellm_ip:80/key/info?key=sk-pyHgYR8Iacc4CLHwjeKu4Q \
      -H 'Authorization: Bearer sk-1234'
 
 
-     {
+{
      "key": "sk-pyHgYR8Iacc4CLHwjeKu4Q",
      "info": {
           "key_name": "sk-...Ku4Q",
@@ -194,8 +197,8 @@ curl http://$litellm_ip:80/key/info?key=sk-pyHgYR8Iacc4CLHwjeKu4Q \
           "litellm_budget_table": null
      }
 }
-// generate user
 
+// generate user
 curl --location 'http://$litellm_ip:80/user/new' \
 --header 'Authorization: Bearer sk-1234' \
 --header 'Content-Type: application/json' \
@@ -279,8 +282,8 @@ curl http://$litellm_ip:80/key/generate \
      "expires": null,
      "token_id": "d412854563e2c7fb88f056830d620b5b5f3b1299094e35e9d321cdd1128e60d0"
 }
-// get user usage
 
+// get user usage
 curl http://$litellm_ip:80/user/info?user_id=default_user_id \
      -X GET \
      -H 'Authorization: Bearer sk-1234'
@@ -372,8 +375,8 @@ curl http://$litellm_ip:80/user/info?user_id=default_user_id \
      ],
      "teams": []
 }
-// test request with user key 
 
+// test request with user key 
 curl -i http://$litellm_ip:80/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-AJaMkW3Q9hJz58Q2Vca6ZA" \
@@ -400,183 +403,3 @@ curl -i http://$litellm_ip:80/v1/chat/completions \
           }
      ]
 }'
-
-
-// get user usage again
-
-{
-     "user_id": "f1df5e67-2465-441a-8f63-1155dcd6ee60",
-     "user_info": {
-          "user_id": "f1df5e67-2465-441a-8f63-1155dcd6ee60",
-          "user_alias": null,
-          "team_id": null,
-          "organization_id": null,
-          "password": null,
-          "teams": [],
-          "user_role": null,
-          "max_budget": null,
-          "spend": 0.000204,
-          "user_email": "<user_mail>",
-          "models": [],
-          "max_parallel_requests": null,
-          "tpm_limit": null,
-          "rpm_limit": null,
-          "budget_duration": null,
-          "budget_reset_at": null,
-          "allowed_cache_controls": [],
-          "model_spend": {},
-          "model_max_budget": {},
-          "litellm_organization_table": null,
-          "invitations_created": null,
-          "invitations_updated": null,
-          "invitations_user": null
-     },
-     "keys": [
-          {
-               "token": "65eee33674ade4c2838a18b3614d047400165e4461397920ff57caa076a7e463",
-               "key_name": "sk-...WccA",
-               "key_alias": null,
-               "soft_budget_cooldown": false,
-               "spend": 0.0,
-               "expires": null,
-               "models": [],
-               "aliases": {},
-               "config": {},
-               "user_id": "f1df5e67-2465-441a-8f63-1155dcd6ee60",
-               "team_id": null,
-               "permissions": {},
-               "max_parallel_requests": null,
-               "metadata": {},
-               "tpm_limit": null,
-               "rpm_limit": null,
-               "max_budget": null,
-               "budget_duration": null,
-               "budget_reset_at": null,
-               "allowed_cache_controls": [],
-               "model_spend": {},
-               "model_max_budget": {},
-               "budget_id": null,
-               "litellm_budget_table": null,
-               "team_alias": "None"
-          },
-          {
-               "token": "d412854563e2c7fb88f056830d620b5b5f3b1299094e35e9d321cdd1128e60d0",
-               "key_name": "sk-...a6ZA",
-               "key_alias": null,
-               "soft_budget_cooldown": false,
-               "spend": 0.000204,
-               "expires": null,
-               "models": [
-                    "bedrock-claude-v3-sonnet"
-               ],
-               "aliases": {},
-               "config": {},
-               "user_id": "f1df5e67-2465-441a-8f63-1155dcd6ee60",
-               "team_id": null,
-               "permissions": {},
-               "max_parallel_requests": null,
-               "metadata": {},
-               "tpm_limit": null,
-               "rpm_limit": null,
-               "max_budget": null,
-               "budget_duration": null,
-               "budget_reset_at": null,
-               "allowed_cache_controls": [],
-               "model_spend": {},
-               "model_max_budget": {},
-               "budget_id": null,
-               "litellm_budget_table": null,
-               "team_alias": "None"
-          }
-     ],
-     "teams": []
-}
-
-
-{
-     "user_id": "f1df5e67-2465-441a-8f63-1155dcd6ee60",
-     "user_info": {
-          "user_id": "f1df5e67-2465-441a-8f63-1155dcd6ee60",
-          "user_alias": null,
-          "team_id": null,
-          "organization_id": null,
-          "password": null,
-          "teams": [],
-          "user_role": null,
-          "max_budget": null,
-          "spend": 0.000408,
-          "user_email": "<user_mail>",
-          "models": [],
-          "max_parallel_requests": null,
-          "tpm_limit": null,
-          "rpm_limit": null,
-          "budget_duration": null,
-          "budget_reset_at": null,
-          "allowed_cache_controls": [],
-          "model_spend": {},
-          "model_max_budget": {},
-          "litellm_organization_table": null,
-          "invitations_created": null,
-          "invitations_updated": null,
-          "invitations_user": null
-     },
-     "keys": [
-          {
-               "token": "d412854563e2c7fb88f056830d620b5b5f3b1299094e35e9d321cdd1128e60d0",
-               "key_name": "sk-...a6ZA",
-               "key_alias": null,
-               "soft_budget_cooldown": false,
-               "spend": 0.000204,
-               "expires": null,
-               "models": [
-                    "bedrock-claude-v3-sonnet"
-               ],
-               "aliases": {},
-               "config": {},
-               "user_id": "f1df5e67-2465-441a-8f63-1155dcd6ee60",
-               "team_id": null,
-               "permissions": {},
-               "max_parallel_requests": null,
-               "metadata": {},
-               "tpm_limit": null,
-               "rpm_limit": null,
-               "max_budget": null,
-               "budget_duration": null,
-               "budget_reset_at": null,
-               "allowed_cache_controls": [],
-               "model_spend": {},
-               "model_max_budget": {},
-               "budget_id": null,
-               "litellm_budget_table": null,
-               "team_alias": "None"
-          },
-          {
-               "token": "65eee33674ade4c2838a18b3614d047400165e4461397920ff57caa076a7e463",
-               "key_name": "sk-...WccA",
-               "key_alias": null,
-               "soft_budget_cooldown": false,
-               "spend": 0.000204,
-               "expires": null,
-               "models": [],
-               "aliases": {},
-               "config": {},
-               "user_id": "f1df5e67-2465-441a-8f63-1155dcd6ee60",
-               "team_id": null,
-               "permissions": {},
-               "max_parallel_requests": null,
-               "metadata": {},
-               "tpm_limit": null,
-               "rpm_limit": null,
-               "max_budget": null,
-               "budget_duration": null,
-               "budget_reset_at": null,
-               "allowed_cache_controls": [],
-               "model_spend": {},
-               "model_max_budget": {},
-               "budget_id": null,
-               "litellm_budget_table": null,
-               "team_alias": "None"
-          }
-     ],
-     "teams": []
-}

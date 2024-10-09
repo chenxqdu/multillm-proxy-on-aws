@@ -5,18 +5,20 @@ One-Click deployment with CloudFormation
 
 Based on LiteLLM Project [Docs](https://litellm.vercel.app/docs/)
 
-## Deployment on AWS
+### Deployment on AWS
 
 Prerequisite:
 
-An exsiting s3 bucket with uploaded configuration files :
+An exsiting s3 bucket with uploaded configuration files with prefix ```s3://<s3_bucket>/litellm/``` :
 
 1. for ecs deployement: proxy_config.yaml
-2. for ec2 deployement: proxy_config.yaml, docker-comspose.yml, prometheus.yml (optional)
+2. for ec2 deployement: proxy_config.yaml, docker-comspose.yml, prometheus.yml (optional and functionality available only in enterprise edition)
 
 Notice:
 
-PostgreSQL is used for Virual key and Spend track, Redis is used for routing, you can remove these components from LiteLLM_ecs.yaml or docker-compose.yml according to your scenario.
+It takes around 20 mins for ecs deployment and 5 minutes for ec2 deployment.
+
+PostgreSQL is used for Virual key and Spend tracking, Redis is used for routing, you can remove these components from LiteLLM_ecs.yaml or docker-compose.yml according to your scenario.
 
 ### Outputs for API call
 
@@ -51,17 +53,70 @@ docker-compose up -d
 
 ## LiteLLM Proxy Functionalities
 
+Refer to test_virtkey.json for examples detail.
+
 ### Simple API call 
 
 compatible with OpenAI chat completion
 
-### Virtual Key and Spend Tracing - with PG
+#### Simple call with streaming
+
+```
+curl -i http://$litellm_ip:80/v1/chat/completions \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer <master_key>" \
+    -d '{
+        "model": "bedrock-claude-v3-haiku",
+        "messages": [
+            {
+                "role": "user",
+                "content": "Hello"
+            }
+        ],
+        "stream": True
+}'
+```
+
+
+#### Simple call with OpenAI SDK
+
+```
+import openai
+client = openai.OpenAI(
+    api_key="<your_master_key or virtual_key>",
+    base_url="http://$litellm_ip:80"
+)
+
+# request sent to model set on litellm proxy, `litellm --model`
+response = client.chat.completions.create(model="bedrock-claude-v3-haiku", messages = [
+    {
+        "role": "user",
+        "content": "this is a test request, write a short poem"
+    }
+])
+print(response)
+
+# streaming enabled, request sent to model set on litellm proxy, `litellm --model`
+response = client.chat.completions.create(model="bedrock-claude-v3-haiku", messages = [
+    {
+        "role": "user",
+        "content": "this is a test request, write a short poem"
+    }
+], stream=True)
+
+for chunk in response:
+    print(chunk)
+
+```
+
+
+### Virtual Key and Spend Tracking - with PG
 
 #### generate virtual key 
 
 ```
 curl http://$litellm_ip:80/key/generate \
-    --header 'Authorization: Bearer sk-1234' \
+    --header 'Authorization: Bearer <master_key>' \
     --header 'Content-Type: application/json' \
     --data-raw '{
         "models": [
@@ -69,7 +124,7 @@ curl http://$litellm_ip:80/key/generate \
             "bedrock-claude-v3-haiku"
         ],
         "metadata": {
-            "user": "chenxqdu@amazon.com"
+            "user": "<user_mail>"
         }
 }'
 ```
@@ -97,12 +152,12 @@ curl http://$litellm_ip:80/v1/chat/completions \
 ```
 curl http://$litellm_ip:80/key/info?key=sk-pyHgYR8Iacc4CLHwjeKu4Q \
     -X GET \
-    -H 'Authorization: Bearer sk-1234'
+    -H 'Authorization: Bearer <master_key>'
 ```
 
 ### Multi LLM instance load balancing - with Redis
 
-#### configure multi instances for a model in proxy config file
+#### configure multi instances for a model in proxy config file  
 ```
   - model_name: bedrock-claude-v3-sonnet
     litellm_params:
@@ -120,7 +175,7 @@ curl http://$litellm_ip:80/key/info?key=sk-pyHgYR8Iacc4CLHwjeKu4Q \
         rpm: 30
 ```
 
-#### simple call test 
+#### simple call test of balancing
 
 Invoke request mutliple times with -i
 
@@ -128,7 +183,7 @@ Invoke request mutliple times with -i
 
 curl -i http://$litellm_ip:80/v1/chat/completions \
     -H "Content-Type: application/json" \
-    -H "Authorization: Bearer sk-1234" \
+    -H "Authorization: Bearer <master_key>" \
     -d '{
         "model": "bedrock-claude-v3-sonnet",
         "messages": [
@@ -166,7 +221,7 @@ mock rate limit
 ```
 curl -X POST http://$litellm_ip:80/chat/completions \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer sk-1234' \
+    -H 'Authorization: Bearer <master_key>' \
     -d '{
     "model": "bedrock-claude-v3-sonnet",
     "messages": [
@@ -193,7 +248,7 @@ Set rate limit for a key
 
 ```
 curl --location http://$litellm_ip:80/key/generate \
-    --header 'Authorization: Bearer sk-1234' \
+    --header 'Authorization: Bearer <master_key>' \
     --header 'Content-Type: application/json' \
     --data '{"max_parallel_requests": 10, "tpm_limit": 200, "rpm_limit": 4}' 
 
@@ -242,7 +297,7 @@ Request to mock fallback
 ```
 curl -X POST http://$litellm_ip:80/chat/completions \
     --header 'Content-Type: application/json' \
-    --header 'Authorization: Bearer sk-1234' \
+    --header 'Authorization: Bearer <master_key>' \
     --data '{
     "model": "bedrock-claude-v3-sonnet",
     "messages": [
@@ -290,7 +345,7 @@ The response is returned by haiku
 ```
 http://$litellm_ip:80/ui
 
-Login: Admin/<master_key>
+Login: admin/<master_key>
 ```
 
 <img src="img/litellm_ui.png" alt="Alt Text" width="" height="">

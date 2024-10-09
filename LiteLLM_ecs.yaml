@@ -358,7 +358,7 @@ Resources:
             - Name: 'S3_BUCKET_FILE_1'
               Value: !Ref ProxyFileS3Bucket
             - Name: 'SRC_FILE_PATH_FILE_1'
-              Value: !Ref ProxyFilePath
+              Value: !Ref ProxyFileS3Key
             - Name: 'DEST_FILE_PATH_FILE_1'
               Value: '/app/proxy_config.yaml'
           MountPoints:
@@ -385,12 +385,6 @@ Resources:
                 Value: !GetAtt LiteLLMRedis.RedisEndpoint.Address
               - Name: REDIS_PORT
                 Value: 6379
-          #   - Name: AWS_REGION_NAME
-          #     Value: !Ref 'AWS::Region'
-          #   - Name: AWS_ACCESS_KEY_ID
-          #     Value: !Ref AccessKeyId
-          #   - Name: AWS_SECRET_ACCESS_KEY
-          #     Value: !Ref SecretAccessKey 
           EntryPoint:  # 添加 EntryPoint 以指定容器启动命令和参数
             - "litellm"
             - "--detailed_debug"
@@ -498,7 +492,6 @@ Resources:
   ScalingRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: litellm-proxy-scaling-role
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
