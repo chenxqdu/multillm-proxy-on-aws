@@ -203,15 +203,25 @@ curl http://$litellm_ip:80/key/info?key=sk-pyHgYR8Iacc4CLHwjeKu4Q \
         aws_region_name: "us-west-2"
         aws_access_key_id: "xxxxxx"
         aws_secret_access_key: "xxxxxxx"
-        rpm: 30
+        rpm: 5
   - model_name: bedrock-claude-v3-sonnet
     litellm_params:
         model: bedrock/anthropic.claude-3-sonnet-20240229-v1:0
         aws_region_name: "us-east-1"
         aws_access_key_id: "xxxxxx"
         aws_secret_access_key: "xxxxxxx"
-        rpm: 30
+        rpm: 5
 ```
+Default Picks a deployment based on the provided Requests per minute (rpm) or Tokens per minute (tpm). If rpm or tpm is not provided, it randomly picks a deployment.
+
+Use the following configuration for routes to deployment with lowest TPM usage for that minute. If you pass in the deployment's tpm/rpm limits, this will also check against that, and filter out any who's limits would be exceeded. 
+
+```
+router_settings:
+  routing_strategy: usage-based-routing
+  enable_pre_call_check: true
+```
+
 
 #### simple call test of balancing
 
