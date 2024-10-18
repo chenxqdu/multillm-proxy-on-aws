@@ -1,4 +1,3 @@
-
 ## MultiLLM Proxy on AWS
 
 One-Click deployment with CloudFormation
@@ -13,6 +12,8 @@ An exsiting s3 bucket with uploaded configuration files with prefix ```s3://<s3_
 
 1. for ecs deployement: proxy_config.yaml
 2. for ec2 deployement: proxy_config.yaml, docker-comspose.yml, prometheus.yml (optional and functionality available only in enterprise edition)
+
+LiteLLM_ec2_existing_vpc is a CloudFormation template designed to deploy the LiteLLM proxy service within an existing VPC. This template enables users to quickly set up a LiteLLM proxy in  pre-existing VPC infrastructure without the need to create a new VPC.
 
 Notice:
 
