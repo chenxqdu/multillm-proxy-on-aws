@@ -400,6 +400,20 @@ Login: admin/<master_key>
 <img src="img/litellm_ui.png" alt="Alt Text" width="" height="">
 
 
+## LiteLLM Proxy Load test with Locust
+
+```
+pip install locust
+locust
+```
+
+Locust setup for example max concurreny = 100, ramp up = 10 
+<img src="img/locust_setup.png" alt="Alt Text" width="" height="">
+
+Start the load test and get the result
+
+<img src="img/locust_test.png" alt="Alt Text" width="" height="">
+
 
 ## Reference
 
